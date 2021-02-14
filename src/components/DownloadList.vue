@@ -1,13 +1,9 @@
 <template>
   <table class="download-list">
     <tr class="download-list__actions">
-      <th><input class="master-select center" type="checkbox" /></th>
-      <th>
-        {{ selectedItems === 0 ? "None" : "" }}
-        Selected
-        {{ selectedItems > 0 ? selectedItems : "" }}
-      </th>
-      <th><div class="download-selected center">Download Selected</div></th>
+      <th><input class="master-select center" type="checkbox" ref="masterSelect" /></th>
+      <th>{{ numberSelected }}</th>
+      <th><div class="download-selected center" @click="handleDownloadFiles">Download Selected</div></th>
     </tr>
 
     <tr class="download-list__header">
@@ -23,6 +19,7 @@
       v-for="(row, idx) in rowInfo"
       :key="idx"
       :rowData="row"
+      :handleSelectRow="selectRow"
     />
   </table>
 </template>
@@ -36,17 +33,65 @@ export default {
   components: {
     SelectableListItem,
   },
-  props: {},
   data: () => {
     return {
-      selectedItems: 0,
+      selectedItems: [],
+      unselectedItems: [],
       rowInfo: downloadData,
     };
   },
+  computed: {
+    numberSelected() {
+      return `
+        ${this.selectedItems.length === 0 ? 'None ' : ''}
+        Selected
+        ${this.selectedItems.length > 0 ? this.selectedItems.length : ''}
+      `;
+    },
+  },
+  methods: {
+    selectRow(element, rowData) {
+      element.checked = !element.checked;
+
+      if (element.checked) {
+        this.selectedItems.push(rowData);
+        element.closest('tr').classList.add('active');
+      } else {
+        const idx = this.selectedItems.findIndex((row) => row.device === rowData.device);
+        this.selectedItems.splice(idx, 1);
+        element.closest('tr').classList.remove('active');
+      }
+      this.updateMasterCheck();
+    },
+    updateMasterCheck() {
+      if (this.selectedItems.length === this.rowInfo.length) {
+        this.$refs.masterSelect.checked = true;
+        this.$refs.masterSelect.indeterminate = false;
+      } else if (this.selectedItems.length < this.rowInfo.length && this.selectedItems.length != 0) {
+        this.$refs.masterSelect.indeterminate = true;
+      } else if (this.selectedItems.length === 0) {
+        this.$refs.masterSelect.checked = false;
+        this.$refs.masterSelect.indeterminate = false;
+      }
+    },
+    handleDownloadFiles() {
+      if (this.selectedItems.length === 0) return;
+      let alertString = '';
+
+      for (let item of this.selectedItems) {
+        if (item.status === 'available') {
+          alertString += `${item.device} - ${item.path}\n`;
+        }
+      }
+      
+      if (alertString === '') return;
+      alert(alertString);
+    }
+  },
+  mounted() {}
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .download-list {
   border-collapse: collapse;
@@ -70,5 +115,9 @@ export default {
   &__header > td {
     padding: 20px 10px 10px 20px;
   }
+}
+
+.download-selected {
+  cursor: pointer;
 }
 </style>
