@@ -82,10 +82,12 @@ export default {
         
         if (this.$refs.masterSelect.checked === false) {
           childRow.checked = false;
+          childRow.closest('tr').classList.remove('active');
           this.selectedItems = [];
         } else if (this.$refs.masterSelect.checked === true) {
           if (!childRow.checked) {
             childRow.checked = true;
+            childRow.closest('tr').classList.add('active');
             this.selectedItems.push(row);
           }
         } 
