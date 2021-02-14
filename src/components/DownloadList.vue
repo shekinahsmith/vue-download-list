@@ -1,7 +1,7 @@
 <template>
   <table class="download-list">
     <tr class="download-list__actions">
-      <th><input class="master-select center" type="checkbox" ref="masterSelect" /></th>
+      <th><input class="master-select center" type="checkbox" ref="masterSelect"  @click="handleMasterSelection"/></th>
       <th>{{ numberSelected }}</th>
       <th><div class="download-selected center" @click="handleDownloadFiles">Download Selected</div></th>
     </tr>
@@ -14,12 +14,14 @@
       <td>Status</td>
     </tr>
 
+    <!-- could I simply pass an ischecked prop and handle the selection of the check that way -->
     <selectable-list-item
       class="download-list__item"
       v-for="(row, idx) in rowInfo"
       :key="idx"
       :rowData="row"
       :handleSelectRow="selectRow"
+      :ref="row.name"
     />
   </table>
 </template>
@@ -36,7 +38,6 @@ export default {
   data: () => {
     return {
       selectedItems: [],
-      unselectedItems: [],
       rowInfo: downloadData,
     };
   },
@@ -50,9 +51,10 @@ export default {
     },
   },
   methods: {
-    selectRow(element, rowData) {
+    selectRow(event, element, rowData) {
+      event.preventDefault();
       element.checked = !element.checked;
-
+      
       if (element.checked) {
         this.selectedItems.push(rowData);
         element.closest('tr').classList.add('active');
@@ -74,6 +76,21 @@ export default {
         this.$refs.masterSelect.indeterminate = false;
       }
     },
+    handleMasterSelection() {
+      for (let row of this.rowInfo) {
+        let childRow = this.$refs[row.name].$refs[row.name];
+        
+        if (this.$refs.masterSelect.checked === false) {
+          childRow.checked = false;
+          this.selectedItems = [];
+        } else if (this.$refs.masterSelect.checked === true) {
+          if (!childRow.checked) {
+            childRow.checked = true;
+            this.selectedItems.push(row);
+          }
+        } 
+      }
+    },
     handleDownloadFiles() {
       if (this.selectedItems.length === 0) return;
       let alertString = '';
@@ -86,9 +103,8 @@ export default {
       
       if (alertString === '') return;
       alert(alertString);
-    }
+    },
   },
-  mounted() {}
 };
 </script>
 

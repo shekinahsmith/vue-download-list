@@ -1,10 +1,9 @@
 <template>
   <tr 
     class="list-item" 
-    @click="handleSelectRow($refs[rowData.name], rowData)">
+    @click="handleSelectRow($event, $refs[rowData.name], rowData)">
     <td class="list-item-checkbox">
       <input type="checkbox" :name="rowData.name" :ref="rowData.name" />
-
     </td>
     <td class="list-item-name">{{ rowData.name }}</td>
     <td class="list-item-device">{{ rowData.device }}</td>
@@ -46,7 +45,7 @@ export default {
     padding: 10px 10px 10px 20px;
 
     &.list-item-checkbox {
-      padding-left: 0;
+      padding-left: 5px;
     }
   }
 
