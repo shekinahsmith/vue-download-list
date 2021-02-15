@@ -1,14 +1,18 @@
 <template>
   <tr 
-    class="list-item" 
-    @click="handleSelectRow($event, $refs[rowData.name], rowData)">
+    class="list-item">
     <td class="list-item-checkbox">
-      <input type="checkbox" :name="rowData.name" :ref="rowData.name" />
+      <slot></slot>
     </td>
     <td class="list-item-name">{{ rowData.name }}</td>
     <td class="list-item-device">{{ rowData.device }}</td>
     <td class="list-item-path">{{ rowData.path }}</td>
-    <td class="list-item-status" :class="rowData.status">{{ rowData.status }}</td>
+    <td 
+      class="list-item-status" 
+      :class="rowData.status"
+    >
+      {{ rowData.status }}
+    </td>
   </tr>
 </template>
 
@@ -21,9 +25,6 @@ export default {
       device: String,
       path: String,
       status: String,
-    },
-    handleSelectRow: {
-      type: Function
     }
   }
 };

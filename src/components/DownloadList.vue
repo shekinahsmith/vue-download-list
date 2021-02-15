@@ -1,9 +1,22 @@
 <template>
   <table class="download-list">
     <tr class="download-list__actions">
-      <th><input class="master-select center" type="checkbox" ref="masterSelect"  @click="handleMasterSelection"/></th>
+      <th>
+        <input 
+          class="master-select center"
+          type="checkbox" 
+          ref="masterSelect"
+          @click="handleMasterSelection"
+        /></th>
       <th>{{ numberSelected }}</th>
-      <th><div class="download-selected center" @click="handleDownloadFiles">Download Selected</div></th>
+      <th>
+        <div 
+          class="download-selected center" 
+          @click="handleDownloadFiles"
+        >
+          Download Selected
+        </div>
+      </th>
     </tr>
 
     <tr class="download-list__header">
@@ -13,16 +26,23 @@
       <td>Path</td>
       <td>Status</td>
     </tr>
-
-    <!-- could I simply pass an ischecked prop and handle the selection of the check that way -->
+    
     <selectable-list-item
       class="download-list__item"
       v-for="(row, idx) in rowInfo"
       :key="idx"
       :rowData="row"
-      :handleSelectRow="selectRow"
-      :ref="row.name"
-    />
+      @click="selectRow(row)"
+    >
+      <input
+        @click.stop
+        type="checkbox" 
+        :name="row.name" 
+        :ref="row.name" 
+        :value="row"
+        v-model="selectedItems"
+      />
+    </selectable-list-item>
   </table>
 </template>
 
@@ -51,43 +71,43 @@ export default {
     },
   },
   methods: {
-    selectRow(event, element, rowData) {
-      event.preventDefault();
+    selectRow(rowData) {
+      const element = this.$refs[rowData.name];
       element.checked = !element.checked;
       
       if (element.checked) {
         this.selectedItems.push(rowData);
-        element.closest('tr').classList.add('active');
       } else {
         const idx = this.selectedItems.findIndex((row) => row.device === rowData.device);
         this.selectedItems.splice(idx, 1);
-        element.closest('tr').classList.remove('active');
       }
       this.updateMasterCheck();
     },
     updateMasterCheck() {
+      const masterSelect = this.$refs.masterSelect;
+
       if (this.selectedItems.length === this.rowInfo.length) {
-        this.$refs.masterSelect.checked = true;
-        this.$refs.masterSelect.indeterminate = false;
+        masterSelect.checked = true;
+        masterSelect.indeterminate = false;
       } else if (this.selectedItems.length < this.rowInfo.length && this.selectedItems.length != 0) {
-        this.$refs.masterSelect.indeterminate = true;
+        masterSelect.indeterminate = true;
       } else if (this.selectedItems.length === 0) {
-        this.$refs.masterSelect.checked = false;
-        this.$refs.masterSelect.indeterminate = false;
+        masterSelect.checked = false;
+        masterSelect.indeterminate = false;
       }
     },
     handleMasterSelection() {
+      const masterSelect = this.$refs.masterSelect;
+
       for (let row of this.rowInfo) {
-        let childRow = this.$refs[row.name].$refs[row.name];
+        let childRow = this.$refs[row.name];
         
-        if (this.$refs.masterSelect.checked === false) {
+        if (masterSelect.checked === false) {
           childRow.checked = false;
-          childRow.closest('tr').classList.remove('active');
           this.selectedItems = [];
-        } else if (this.$refs.masterSelect.checked === true) {
+        } else if (masterSelect.checked === true) {
           if (!childRow.checked) {
             childRow.checked = true;
-            childRow.closest('tr').classList.add('active');
             this.selectedItems.push(row);
           }
         } 
