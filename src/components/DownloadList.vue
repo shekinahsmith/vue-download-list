@@ -3,17 +3,22 @@
     <tr class="download-list__actions">
       <th>
         <input 
+          @click="handleMasterSelection()"
           class="master-select center"
           type="checkbox" 
           ref="masterSelect"
-          @click="handleMasterSelection"
         /></th>
       <th>{{ numberSelected }}</th>
       <th>
         <div 
-          class="download-selected center" 
           @click="handleDownloadFiles"
+          class="download-selected center"
         >
+          <img
+            class ="icon-download"
+            src="@/assets/images/icon-download.svg" 
+            alt="Download Selcted" 
+          />
           Download Selected
         </div>
       </th>
@@ -30,12 +35,13 @@
     <selectable-list-item
       class="download-list__item"
       v-for="(row, idx) in rowInfo"
+      @click="handleSelectRow(row)"
       :key="idx"
       :rowData="row"
-      @click="selectRow(row)"
     >
       <input
         @click.stop
+        @change="handleRowActiveStatus($event, row.name)"
         type="checkbox" 
         :name="row.name" 
         :ref="row.name" 
@@ -47,7 +53,7 @@
 </template>
 
 <script>
-import { downloadData } from "../assets/download-data.js";
+import { downloadData } from "@/assets/js/download-data.js";
 import SelectableListItem from "./common-ui/SelectableListItem.vue";
 
 export default {
@@ -69,27 +75,54 @@ export default {
         ${this.selectedItems.length > 0 ? this.selectedItems.length : ''}
       `;
     },
+    numSelectedEqualNumInData() {
+      return this.selectedItems.length === this.rowInfo.length
+    },
+    numSelectedLessThenNumInData() {
+      return this.selectedItems.length < this.rowInfo.length;
+    }
   },
   methods: {
-    selectRow(rowData) {
-      const element = this.$refs[rowData.name];
-      element.checked = !element.checked;
+    addSelectedRow(row) {
+      const input = this.$refs[row.name];
+      this.selectedItems.push(row);
+      input.closest('tr').classList.add('active');
+    },
+    removeSelectedRow(row) {
+      const input = this.$refs[row.name];
+      const idx = this.selectedItems.findIndex((selectedRow) => selectedRow.device === row.device);
+      this.selectedItems.splice(idx, 1);
+      input.closest('tr').classList.remove('active');
+    },
+    handleSelectRow(rowData) {
+      const input = this.$refs[rowData.name];
+      input.checked = !input.checked;
       
-      if (element.checked) {
-        this.selectedItems.push(rowData);
+      if (input.checked) {
+        this.addSelectedRow(rowData);
       } else {
-        const idx = this.selectedItems.findIndex((row) => row.device === rowData.device);
-        this.selectedItems.splice(idx, 1);
+        this.removeSelectedRow(rowData);
+      }
+      this.updateMasterCheck();
+    },
+    handleRowActiveStatus(event) {
+      if (event.target.checked) {
+        event.target.closest('tr').classList.add('active');
+      } else {
+        event.target.closest('tr').classList.remove('active');
       }
       this.updateMasterCheck();
     },
     updateMasterCheck() {
       const masterSelect = this.$refs.masterSelect;
 
-      if (this.selectedItems.length === this.rowInfo.length) {
+      if (this.numSelectedEqualNumInData) {
         masterSelect.checked = true;
         masterSelect.indeterminate = false;
-      } else if (this.selectedItems.length < this.rowInfo.length && this.selectedItems.length != 0) {
+      } else if (
+        this.numSelectedLessThenNumInData &&
+        this.selectedItems.length != 0
+      ) {
         masterSelect.indeterminate = true;
       } else if (this.selectedItems.length === 0) {
         masterSelect.checked = false;
@@ -99,18 +132,24 @@ export default {
     handleMasterSelection() {
       const masterSelect = this.$refs.masterSelect;
 
-      for (let row of this.rowInfo) {
-        let childRow = this.$refs[row.name];
-        
-        if (masterSelect.checked === false) {
-          childRow.checked = false;
-          this.selectedItems = [];
-        } else if (masterSelect.checked === true) {
-          if (!childRow.checked) {
-            childRow.checked = true;
-            this.selectedItems.push(row);
+      if (this.numSelectedEqualNumInData) {
+        masterSelect.checked = false;
+
+        for (let row of this.rowInfo) {
+          let input = this.$refs[row.name];
+          input.checked = false;
+          this.removeSelectedRow(row);
+        }
+      } else if (this.numSelectedLessThenNumInData) {
+        for (let row of this.rowInfo) {
+          let input = this.$refs[row.name];
+          masterSelect.checked = true;
+
+          if (!input.checked) {
+            input.checked = true;
+            this.addSelectedRow(row);
           }
-        } 
+        }
       }
     },
     handleDownloadFiles() {
@@ -156,6 +195,13 @@ export default {
 }
 
 .download-selected {
+  align-items: center;
   cursor: pointer;
+  display: flex;
+
+  .icon-download {
+    height: 20px;
+    width: 20px;
+  }
 }
 </style>

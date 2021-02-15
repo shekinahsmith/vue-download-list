@@ -1,24 +1,23 @@
-# download-list
+# Vue Download List
 
 ## Project setup
-```
-npm install
-```
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+To begin, clone this repo using SSH, HTTPS or downloading the ZIP'd version. Once downloaded run `npm install`.
 
-### Compiles and minifies for production
+### Serve Locally
+
+Once you've installed the necessary node modules, to run this project locally, simply use `npm run serve`.
+
+## Addtiional Commands
+
+### Compile and minify for production
+
 ```
 npm run build
 ```
 
-### Lints and fixes files
+### Lint and fix files
+
 ```
 npm run lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
