@@ -9,7 +9,7 @@
           ref="masterSelect"
         /></th>
       <th>{{ numberSelected }}</th>
-      <th>
+      <th colspan="3">
         <div 
           @click="handleDownloadFiles"
           class="download-selected center"
@@ -70,7 +70,7 @@ export default {
   computed: {
     numberSelected() {
       return `
-        ${this.selectedItems.length === 0 ? 'None ' : ''}
+        ${this.noSelectedItems ? 'None ' : ''}
         Selected
         ${this.selectedItems.length > 0 ? this.selectedItems.length : ''}
       `;
@@ -80,6 +80,9 @@ export default {
     },
     numSelectedLessThenNumInData() {
       return this.selectedItems.length < this.rowInfo.length;
+    },
+    noSelectedItems() {
+      return this.selectedItems.length === 0;
     }
   },
   methods: {
@@ -94,6 +97,8 @@ export default {
       this.selectedItems.splice(idx, 1);
       input.closest('tr').classList.remove('active');
     },
+    // on table row click ensure checkbox is checked and
+    // add row data to selected items array
     handleSelectRow(rowData) {
       const input = this.$refs[rowData.name];
       input.checked = !input.checked;
@@ -105,6 +110,11 @@ export default {
       }
       this.updateMasterCheck();
     },
+    // since the click event from the check bubbles up
+    // @click.stop was added in the dom to prevent bubbling
+    // which was causing undesred side effects. This ensures
+    // the default checked behavior also udpates the master
+    // check box and the row active status
     handleRowActiveStatus(event) {
       if (event.target.checked) {
         event.target.closest('tr').classList.add('active');
@@ -113,6 +123,9 @@ export default {
       }
       this.updateMasterCheck();
     },
+    // HTML checkbox indeterminate state can only be
+    // manipulated via JS. This ensures that the correct
+    // check box state is visible given the right parameters
     updateMasterCheck() {
       const masterSelect = this.$refs.masterSelect;
 
@@ -124,11 +137,13 @@ export default {
         this.selectedItems.length != 0
       ) {
         masterSelect.indeterminate = true;
-      } else if (this.selectedItems.length === 0) {
+      } else if (this.noSelectedItems) {
         masterSelect.checked = false;
         masterSelect.indeterminate = false;
       }
     },
+    // onClick of the "masterSelect" checkbox
+    // this handles add/removing rows on click
     handleMasterSelection() {
       const masterSelect = this.$refs.masterSelect;
 
@@ -153,7 +168,7 @@ export default {
       }
     },
     handleDownloadFiles() {
-      if (this.selectedItems.length === 0) return;
+      if (this.noSelectedItems) return;
       let alertString = '';
 
       for (let item of this.selectedItems) {
